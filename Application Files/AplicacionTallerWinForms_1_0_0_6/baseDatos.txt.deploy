@@ -1,0 +1,107 @@
+-- Activar claves foráneas en SQLite
+PRAGMA foreign_keys = ON;
+
+-- ============================
+-- Tabla de Clientes
+-- ============================
+CREATE TABLE IF NOT EXISTS Clientes (
+    ClienteID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Nombre TEXT NOT NULL,
+    Telefono TEXT,
+    Direccion TEXT,
+    Email TEXT
+);
+
+-- ============================
+-- Tabla de Repuestos
+-- ============================
+CREATE TABLE IF NOT EXISTS Repuestos (
+    RepuestoID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Nombre TEXT NOT NULL,
+    PrecioCosto REAL NOT NULL,
+    PrecioVenta REAL NOT NULL,
+    Stock integer
+);
+
+-- ============================
+-- Tabla de Reparaciones
+-- ============================
+CREATE TABLE IF NOT EXISTS Reparaciones (
+    ReparacionID INTEGER PRIMARY KEY AUTOINCREMENT,
+    ClienteID INTEGER NOT NULL,
+    FechaIngreso TEXT NOT NULL,
+    FechaEntrega TEXT,
+    DescripcionProblema TEXT,
+    Estado TEXT DEFAULT 'Pendiente',
+    FOREIGN KEY (ClienteID) REFERENCES Clientes(ClienteID) ON DELETE CASCADE
+);
+
+-- ============================
+-- Tabla intermedia ReparacionRepuestos
+-- ============================
+CREATE TABLE IF NOT EXISTS ReparacionRepuestos (
+    ReparacionRepuestoID INTEGER PRIMARY KEY AUTOINCREMENT,
+    ReparacionID INTEGER NOT NULL,
+    RepuestoID INTEGER NOT NULL,
+    Cantidad INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY (ReparacionID) REFERENCES Reparaciones(ReparacionID) ON DELETE CASCADE,
+    FOREIGN KEY (RepuestoID) REFERENCES Repuestos(RepuestoID)
+);
+
+-- ============================
+-- Tabla de Servicios (opcional para mano de obra)
+-- ============================
+CREATE TABLE IF NOT EXISTS Servicios (
+    ServicioID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Nombre TEXT NOT NULL,
+    Precio REAL NOT NULL
+);
+
+-- ============================
+-- Tabla intermedia ReparacionServicios
+-- ============================
+CREATE TABLE IF NOT EXISTS ReparacionServicios (
+    ReparacionServicioID INTEGER PRIMARY KEY AUTOINCREMENT,
+    ReparacionID INTEGER NOT NULL,
+    ServicioID INTEGER NOT NULL,
+    Cantidad INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY (ReparacionID) REFERENCES Reparaciones(ReparacionID) ON DELETE CASCADE,
+    FOREIGN KEY (ServicioID) REFERENCES Servicios(ServicioID)
+);
+
+-- ============================
+-- Datos de ejemplo
+-- ============================
+
+-- Clientes
+INSERT INTO Clientes (Nombre, Telefono, Direccion, Email) VALUES
+('Juan Pérez', '351-1234567', 'Av. Siempre Viva 123', 'juanperez@mail.com'),
+('María López', '351-7654321', 'Calle Falsa 456', 'marialopez@mail.com');
+
+-- Repuestos
+INSERT INTO Repuestos (Nombre, PrecioCosto, PrecioVenta) VALUES
+('Filtro de agua', 500, 800),
+('Cuchilla cortadora de pasto', 1200, 1800),
+('Bujía', 300, 500);
+
+-- Servicios
+INSERT INTO Servicios (Nombre, Precio) VALUES
+('Cambio de aceite', 1500),
+('Ajuste de motor', 2500),
+('Limpieza general', 1000);
+
+-- Reparaciones
+INSERT INTO Reparaciones (ClienteID, FechaIngreso, FechaEntrega, DescripcionProblema, Estado) VALUES
+(1, '2025-08-13', NULL, 'Cortadora no enciende', 'Pendiente'),
+(2, '2025-08-12', '2025-08-13', 'Filtro de agua con pérdida', 'Entregado');
+
+-- ReparacionRepuestos
+INSERT INTO ReparacionRepuestos (ReparacionID, RepuestoID, Cantidad) VALUES
+(1, 2, 1), -- Cortadora: cuchilla
+(1, 3, 2), -- Cortadora: bujías
+(2, 1, 1); -- Filtro de agua
+
+-- ReparacionServicios
+INSERT INTO ReparacionServicios (ReparacionID, ServicioID, Cantidad) VALUES
+(1, 2, 1), -- Ajuste de motor
+(2, 3, 1); -- Limpieza general
